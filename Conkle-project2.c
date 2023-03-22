@@ -279,7 +279,6 @@ int main(int argc, char *argv[])
    gettimeofday(&end, NULL); 
    printf("Seconds spent sorting %i: Wall Clock: %5.3f / CPU: %5.3f\n", SIZE, (end.tv_sec - start.tv_sec) + ((end.tv_usec - start.tv_usec) / 1000000.0), (clock() - begin) / 1000000.0);
    printf("Total Runtime: %f\n", (clock() - begin) / 1000000.0);
-
    isSorted(SIZE);  // check to see if the array is sorted. 
    free(arr);       // clear memory made for the array
    return 0;
@@ -294,10 +293,10 @@ int main(int argc, char *argv[])
 */
 void *hybridQs(void *arrData)
 { 
-	struct thread_parameters *p = arrData; 
-   int LO = p->lo;                  // pointer lowest index 
-   int HI = p->hi;              // pointer higher index  
-   int x = arr[LO];                 // pivot value for quicksort
+   struct thread_parameters *p = arrData; 
+   int LO = p->lo;  // pointer lowest index 
+   int HI = p->hi;  // pointer higher index  
+   int x = arr[LO]; // pivot value for quicksort
    int k, A, B, C, median; 
    int segmentSize = (HI - LO + 1); 
  
@@ -307,11 +306,9 @@ void *hybridQs(void *arrData)
    // If there are only two items, then no reason using a sorting algorithm. Make sure that we need to swap and if not just exit. 
    if(segmentSize == 2) 
    {
-      if(arr[LO] < arr[HI]) 
-         return NULL; // we are good, so return
+       if (arr[LO] < arr[HI]) { return NULL; } // we are good, so return
    
-      // else, swap the values and return
-      //printf("Swapping(segmentSize) %i & %i\n", arr[LO], arr[HI]); 
+      // else, swap the values and return 
       int temp = arr[LO]; 
       arr[LO] = arr[HI]; 
       arr[HI] = temp; 
@@ -322,50 +319,47 @@ void *hybridQs(void *arrData)
    // or use Shell sort / Insertion Sort (default alternate algorithm is shell sort)
 	if(segmentSize <= THRESHOLD)
 	{
-      if(alternate == true) // insertion sort
+        if(alternate == true) // insertion sort
 		{
-         for(int i = LO + 1; i <= HI; i++)
-         {
-            for(int j = i; j > LO; j--)
+            for(int i = LO + 1; i <= HI; i++)
             {
-               if(arr[j - 1] < arr[j]) 
-                  break; 
-               else 
-               { 
-                  //printf("Swapping(IS) %i & %i\n", arr[j-1], arr[j]); 
-                  int temp = arr[j - 1]; 
-                  arr[j - 1] = arr[j]; 
-                  arr[j] = temp;
-                  //printArray(size);  
-               }
-            }
-         }
-         //printArray(size); 
-         return NULL; 
-		}
-      // Else, Shell Sort is the alternate algorithm. 
-  		k = 1;
-		while(k <= segmentSize) k *= 2; 
-      do
-      {
-         for (int i = LO; i < LO + (segmentSize - k); i++) // for each comb position
-         {
-            for (int j = i; j >= 0; j -= k) // Tooth-to-tooth is k
+                for(int j = i; j > LO; j--)
+                {
+                    if (arr[j - 1] < arr[j]) { break; }
+                    else 
+                    {  
+                        int temp = arr[j - 1]; 
+                        arr[j - 1] = arr[j]; 
+                        arr[j] = temp;  
+                    }
+                }
+            } 
+            return NULL; 
+	    }
+
+
+        // Else, Shell Sort is the alternate algorithm. 
+  	    k = 1;
+	    while(k <= segmentSize) k *= 2; 
+
+        do 
+        {
+            for (int i = LO; i < LO + (segmentSize - k); i++) // for each comb position
             {
-               if (arr[j] <= arr[j + k]) break; // move upstream/exit?
-               else
-               {
-                  //printf("Swapping(SS) %i & %i\n", arr[j], arr[j+k]); 
-						int temp = arr[j]; 
-						arr[j] = arr[j + k]; 
-						arr[j + k] = temp; 
-                  //printArray(size);                  
-               } 
+                for (int j = i; j >= 0; j -= k) // Tooth-to-tooth is k
+                {
+                    if (arr[j] <= arr[j + k]) break; // move upstream/exit?
+                    else
+                    {
+                        int temp = arr[j]; 
+				        arr[j] = arr[j + k]; 
+				        arr[j + k] = temp; 
+                    } 
+                }
             }
-         }
-         k = k >> 1; // or k /= 2;
-      } while (k > 0);
-      return NULL; 
+            k = k >> 1; // or k /= 2;
+        }while (k > 0);
+        return NULL; 
 	}
 	
    if(LO < HI)
@@ -396,36 +390,34 @@ void *hybridQs(void *arrData)
       // Partition:
       // Put all the numbers greater than the pivot to the right and all numbers less than to the left. 
       // The default pivot elements is p->lo unless using Median Of Three. 
-
       HI = p->hi + 1;
-		do
-	   { 
-			do LO++; while (arr[LO] < x); 
-			do HI--; while (arr[HI] > x); 
-			if(LO < HI) // swap arr[LO] & arr[HI]
-			{  
-				int temp = arr[LO]; 
-				arr[LO] = arr[HI]; 
-				arr[HI] = temp; 
-            //printf("Swapping(QS) %i & %i\n", arr[LO], arr[HI]); 	
-            //printArray(size); 			   
-         }
-			else { break; } 
-      } while(true); 
+	  do
+	  { 
+		do LO++; while(arr[LO] < x); 
+		do HI--; while(arr[HI] > x); 
+		if(LO < HI) // swap arr[LO] & arr[HI]
+		{  
+			int temp = arr[LO]; 
+			arr[LO] = arr[HI]; 
+			arr[HI] = temp; 
+           	
+             			   
+        }
+        else { break; } 
+      }while(true); 
 
-		// swap pivot value and HI (placing the pivot)
-      //printf("Swapping(1) %i & %i\n", arr[p->lo], arr[HI]);
-		arr[p->lo] = arr[HI]; 
-		arr[HI] = x;  
-      //printArray(size); 
+	  // swap pivot value and HI (placing the pivot)
+	  arr[p->lo] = arr[HI]; 
+	  arr[HI] = x;  
+     
 
       struct thread_parameters left, right;
       left.lo = p->lo; // original left
       left.hi = HI - 1; // pivot is in HI
       right.lo = HI + 1; 
       right.hi = p->hi;    // original right
-		hybridQs(&left); //  recursively quicksort the left side  
-		hybridQs(&right); // recursively quicksort the right side 
+	  hybridQs(&left); //  recursively quicksort the left side  
+	  hybridQs(&right); // recursively quicksort the right side 
       return NULL; 
    }
    pthread_exit(NULL); 
@@ -457,9 +449,6 @@ void printArray(int size)
 
 void printPieces(int pcount, struct thread_parameters piecesA[])
 {
-   //printf("[piecesArr[%i].lo = %i |", 0, piecesA[0].lo);
-   //printf("[piecesArr[%i].hi = %i\n", 0, piecesA[0].hi);
-
    for(int i = 0 ; i <= pcount; i++)
    {
       printf("piecesArr[%i]: %5i---%1i\n", i, piecesA[i].lo, piecesA[i].hi);
